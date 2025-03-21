@@ -153,7 +153,7 @@ Assuming *FakePay* called correctly should produce the `InvoiceResponse':
     "customerId": 1,
     "amount": 99.99,
     "card": {
-        "number": "1234567812345678",
+        "number": "123456********5678",
         "expiry": "01-2040",
         "name": "J Doe"
     },
@@ -173,7 +173,7 @@ in the database, construct `FakePayRequest` and pay via the external `fake_pay` 
 
 ```
 {
-    "number": "123456  **** 5678",
+    "number": "1234 5656 7822 5678",
     "expiry": "01-2040",
     "name": "Work Card"
 }
