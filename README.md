@@ -43,7 +43,7 @@ There is also a mock server code called **fake_pay** - similuating a backend ext
 ```
 FAKEPAY_URL = "http://127.0.0.1:9000/fakepay"
 ```
-To start the fake pay service, open a terminal and navigate to to the *fake_pay.py* and start it with:
+To start the fake pay service, open a new terminal and navigate to to the *fake_pay.py* and start it with:
 
 ```
 python fake_pay.py
