@@ -5,7 +5,7 @@ The Goal of this code challenge is to create a *SIMPLE* invoice management syste
 ```
 DB_USER = "root"
 DB_PASSWORD = "example"
-DB_URL = "127.0.0.1:3307/invoice_management"
+DB_URL = "127.0.0.1:3306/invoice_management"
 ```
 
 There are two endpoints that are done for you:
