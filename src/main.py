@@ -4,7 +4,7 @@ from fastapi import FastAPI, Path, Query, Response
 
 from src.models.enums import Status
 from src.models.card import Card
-from src.models.invoice import InvoiceRequest
+from src.models.invoice import InvoiceRequest, InvoiceResponse
 from src.config.settings import Settings
 from src.services.invoice_service import InvoicingService
 from src.services.health_check_service import HealthCheckService
@@ -26,3 +26,8 @@ async def health_check(response: Response):
 async def get_invoice(response: Response, invoice_id:UUID = Path(...)):
      response.status_code, json_response = await invoice_service.get_invoice(invoice_id)
      return json_response
+
+@app.post("/invoice", response_model=InvoiceResponse)
+async def create_invoice(response: Response, invoice_request: InvoiceRequest):
+    response.status_code, json_response = await invoice_service.create_invoice(invoice_request)
+    return json_response

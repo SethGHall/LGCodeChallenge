@@ -1,11 +1,11 @@
 from functools import wraps
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, SQLAlchemyError
 from sqlalchemy import exists, select
 from src.db.invoice_db_model import InvoiceDB, CustomerDB
 from src.config.settings import Settings
-
+from src.models.invoice import InvoiceRequest
 
 settings = Settings()
 
@@ -51,3 +51,21 @@ def get_joined_invoice_customer_by_id(invoice_id: str, db=None):
     ).filter(InvoiceDB.id == invoice_id).first() 
     
     return invoice_customer
+
+@with_db_session
+def save_invoice(invoice_request: InvoiceRequest, invoice_id: str, db=None) -> InvoiceDB:
+    try:
+        invoice_db = InvoiceDB(
+            id=invoice_id,
+            job_description=invoice_request.job_description,
+            customer_id=invoice_request.customer_id,
+            amount=float(invoice_request.amount) # Ensure float, because it might be str
+        )
+        db.add(invoice_db)
+        db.commit()
+        db.refresh(invoice_db)
+        return invoice_db
+    except SQLAlchemyError as e:
+        db.rollback()
+        print(f"Error saving invoice: {e}")
+        raise
