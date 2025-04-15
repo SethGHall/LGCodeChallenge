@@ -27,6 +27,12 @@ async def get_invoice(response: Response, invoice_id:UUID = Path(...)):
      response.status_code, json_response = await invoice_service.get_invoice(invoice_id)
      return json_response
 
+
+@app.get("/invoices")
+async def get_invoices(invoiceStatus: Optional[Status] = Query(None)):
+    return await invoice_service.get_invoices(invoiceStatus)
+
+
 @app.post("/invoice", response_model=InvoiceResponse)
 async def create_invoice(response: Response, invoice_request: InvoiceRequest):
     response.status_code, json_response = await invoice_service.create_invoice(invoice_request)

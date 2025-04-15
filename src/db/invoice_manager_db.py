@@ -1,10 +1,13 @@
 from functools import wraps
+from typing import Optional, List, Tuple
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import OperationalError, SQLAlchemyError
 from sqlalchemy import exists, select
 from src.db.invoice_db_model import InvoiceDB, CustomerDB
 from src.config.settings import Settings
+from src.models.enums import Status
 from src.models.invoice import InvoiceRequest
 
 settings = Settings()
@@ -51,6 +54,23 @@ def get_joined_invoice_customer_by_id(invoice_id: str, db=None):
     ).filter(InvoiceDB.id == invoice_id).first() 
     
     return invoice_customer
+
+
+@with_db_session
+def get_all_invoices(invoice_status: Optional[Status] = None, db=None) -> List[Tuple[InvoiceDB, CustomerDB]]:
+    """
+    Fetch all invoices (optionally filtered by invoice_status), with customer details.
+    Returns a list of tuples (InvoiceDB, CustomerDB)
+    """
+    query = db.query(InvoiceDB, CustomerDB).join(
+        CustomerDB, CustomerDB.customer_id == InvoiceDB.customer_id
+    )
+
+    if invoice_status:
+        query = query.filter(InvoiceDB.invoice_status == invoice_status)
+
+    return query.all()
+
 
 @with_db_session
 def save_invoice(invoice_request: InvoiceRequest, invoice_id: str, db=None) -> InvoiceDB:

@@ -1,10 +1,12 @@
-
+from typing import Optional, List
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException
+
+from src.models.enums import Status
 from src.models.invoice import InvoiceResponse, InvoiceRequest
 from src.models.model_mappers import map_db_to_invoice_response
-from src.db.invoice_manager_db import get_joined_invoice_customer_by_id, save_invoice
+from src.db.invoice_manager_db import get_joined_invoice_customer_by_id, save_invoice, get_all_invoices
 from src.services.fake_pay_service import FakePay
 
 
@@ -21,6 +23,18 @@ class InvoicingService():
         # Map to pydantic model
         invoice_response: InvoiceResponse = map_db_to_invoice_response(invoice_customer[0], invoice_customer[1])
         return 200, invoice_response.model_dump(exclude_none=True, by_alias=True)
+
+
+    async def get_invoices(self, invoiceStatus: Optional[Status] = None):
+        results = get_all_invoices(invoiceStatus)
+
+        invoices: List[InvoiceResponse] = [
+            map_db_to_invoice_response(invoice_retrieved, customer_retrieved)
+            for invoice_retrieved, customer_retrieved in results
+        ]
+
+        return 200, [invoice.model_dump(exclude_none=True, by_alias=True) for invoice in invoices]
+
 
     async def create_invoice(self, invoice_request: InvoiceRequest):
         new_id = str(uuid4())
