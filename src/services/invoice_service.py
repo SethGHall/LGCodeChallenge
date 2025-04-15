@@ -3,6 +3,7 @@ from uuid import UUID, uuid4
 
 from fastapi import HTTPException
 
+from src.models.card import MaskedCard
 from src.models.enums import Status
 from src.models.invoice import InvoiceResponse, InvoiceRequest
 from src.models.model_mappers import map_db_to_invoice_response
@@ -58,5 +59,12 @@ class InvoicingService():
 
         # Map to Pydantic model
         invoice_response: InvoiceResponse = map_db_to_invoice_response(invoice_retrieved, customer_retrieved)
+
+        if invoice_request.card:
+            invoice_response.card = MaskedCard(
+                number = f"**** **** **** {invoice_request.card.number[-4:]}",
+                expiry = invoice_request.card.expiry,
+                name = invoice_request.card.name
+            )
 
         return 201, invoice_response.model_dump(exclude_none=True, by_alias=True)
