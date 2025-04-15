@@ -6,13 +6,13 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 class FakePayHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         """
-        Add this GET health method just to verify Mock Pay Service is running
+        GET health method just to verify Mock Pay Service is running
         """
         if self.path == "/health-check":
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
-            response = {"message": "FakePay mock server is up and running 🚀"}
+            response = {"message": "FakePay mock server is up and running"}
             self.wfile.write(json.dumps(response).encode('utf-8'))
         else:
             self.send_response(404)
