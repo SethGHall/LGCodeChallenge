@@ -57,10 +57,16 @@ def get_joined_invoice_customer_by_id(invoice_id: str, db=None):
 
 
 @with_db_session
-def get_all_invoices(invoice_status: Optional[Status] = None, db=None) -> List[Tuple[InvoiceDB, CustomerDB]]:
+def get_all_invoices(
+        invoice_status: Optional[Status] = None,
+        limit: int = 10,
+        offset: int = 0,
+        db=None
+) -> List[Tuple[InvoiceDB, CustomerDB]]:
+
     """
-    Fetch all invoices (optionally filtered by invoice_status), with customer details.
-    Returns a list of tuples (InvoiceDB, CustomerDB)
+    Fetch paged invoices (optionally filtered by status).
+    Returns a list of (InvoiceDB, CustomerDB) tuples.
     """
     query = db.query(InvoiceDB, CustomerDB).join(
         CustomerDB, CustomerDB.customer_id == InvoiceDB.customer_id
@@ -68,6 +74,8 @@ def get_all_invoices(invoice_status: Optional[Status] = None, db=None) -> List[T
 
     if invoice_status:
         query = query.filter(InvoiceDB.invoice_status == invoice_status)
+
+    query = query.order_by(InvoiceDB.id).limit(limit).offset(offset)
 
     return query.all()
 

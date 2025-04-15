@@ -25,8 +25,14 @@ class InvoicingService():
         return 200, invoice_response.model_dump(exclude_none=True, by_alias=True)
 
 
-    async def get_invoices(self, invoiceStatus: Optional[Status] = None):
-        results = get_all_invoices(invoiceStatus)
+    async def get_invoices(
+            self,
+            invoiceStatus: Optional[Status] = None,
+            limit: int = 10,
+            offset: int = 0
+    ):
+
+        results = get_all_invoices(invoiceStatus, limit, offset)
 
         invoices: List[InvoiceResponse] = [
             map_db_to_invoice_response(invoice_retrieved, customer_retrieved)

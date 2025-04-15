@@ -29,8 +29,12 @@ async def get_invoice(response: Response, invoice_id:UUID = Path(...)):
 
 
 @app.get("/invoices")
-async def get_invoices(invoiceStatus: Optional[Status] = Query(None)):
-    return await invoice_service.get_invoices(invoiceStatus)
+async def get_invoices(
+        invoiceStatus: Optional[Status] = Query(None),
+        limit: int = Query(10, ge=1, le=100),  # default 10, between 1 and 100
+        offset: int = Query(0, ge=0)
+):
+    return await invoice_service.get_invoices(invoiceStatus, limit, offset)
 
 
 @app.post("/invoice", response_model=InvoiceResponse)
