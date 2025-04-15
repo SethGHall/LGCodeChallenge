@@ -7,7 +7,8 @@ from src.models.card import MaskedCard
 from src.models.enums import Status
 from src.models.invoice import InvoiceResponse, InvoiceRequest
 from src.models.model_mappers import map_db_to_invoice_response
-from src.db.invoice_manager_db import get_joined_invoice_customer_by_id, save_invoice, get_all_invoices
+from src.db.invoice_manager_db import get_joined_invoice_customer_by_id, save_invoice, get_all_invoices, \
+    update_invoice_status
 from src.services.fake_pay_service import FakePay
 
 
@@ -46,25 +47,36 @@ class InvoicingService():
     async def create_invoice(self, invoice_request: InvoiceRequest):
         new_id = str(uuid4())
 
-        # Save the invoice to the DB
+        # Step 1: Save the invoice to DB (status defaults to PENDING)
         save_invoice(invoice_request, new_id)
 
-        # Fetch the full invoice + customer info
+        # Step 2: Attempt mock payment if card is present
+        if invoice_request.card:
+            payment_successful = await self.fake_pay.process_payment(
+                transaction_id=new_id,
+                card=invoice_request.card
+            )
+
+            if payment_successful:
+                update_invoice_status(new_id, Status.PAID)
+
+        # Step 3: Fetch the full invoice with customer
         invoice_customer = get_joined_invoice_customer_by_id(new_id)
         if invoice_customer is None:
-            raise HTTPException(status_code=404, detail=f"Unable to retrieve the recently created Invoice this UUID: {new_id}")
+            raise HTTPException(status_code=404,
+                                detail=f"Unable to retrieve the recently created Invoice with UUID: {new_id}")
 
-        # Unpack DB models
         invoice_retrieved, customer_retrieved = invoice_customer
 
-        # Map to Pydantic model
+        # Step 4: Map to response
         invoice_response: InvoiceResponse = map_db_to_invoice_response(invoice_retrieved, customer_retrieved)
 
+        # Step 5: Attach masked card if provided
         if invoice_request.card:
             invoice_response.card = MaskedCard(
-                number = f"**** **** **** {invoice_request.card.number[-4:]}",
-                expiry = invoice_request.card.expiry,
-                name = invoice_request.card.name
+                number=f"**** **** **** {invoice_request.card.number[-4:]}",
+                expiry=invoice_request.card.expiry,
+                name=invoice_request.card.name
             )
 
         return 201, invoice_response.model_dump(exclude_none=True, by_alias=True)

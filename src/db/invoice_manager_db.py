@@ -97,3 +97,15 @@ def save_invoice(invoice_request: InvoiceRequest, invoice_id: str, db=None) -> I
         db.rollback()
         print(f"Error saving invoice: {e}")
         raise
+
+
+@with_db_session
+def update_invoice_status(invoice_id: str, status: Status, db=None):
+    invoice = db.query(InvoiceDB).filter(InvoiceDB.id == invoice_id).first()
+    if not invoice:
+        print(f"Invoice not found for update: {invoice_id}")
+        return False
+
+    invoice.invoice_status = status
+    db.commit()
+    return True
