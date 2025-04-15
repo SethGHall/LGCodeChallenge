@@ -97,10 +97,25 @@ class InvoicingService:
         invoice_response: InvoiceResponse = map_db_to_invoice_response(invoice_retrieved, customer_retrieved)
 
         if card:
-            invoice_response.card = MaskedCard(
-                number=f"**** **** **** {card.number[-4:]}",
-                expiry=card.expiry,
-                name=card.name
-            )
+            invoice_response.card =self._mask_card_for_response(card)
 
         return invoice_response
+
+    def _mask_card_for_response(self, card: Card) -> MaskedCard:
+        clean_number = card.number.replace(" ", "")
+        length = len(clean_number)
+
+        if length <= 10:
+            # Too short to mask meaningfully — mask all except last 4
+            masked_number = "*" * (length - 4) + clean_number[-4:]
+        else:
+            first_six = clean_number[:6]
+            last_four = clean_number[-4:]
+            masked_middle = "*" * 8
+            masked_number = f"{first_six}{masked_middle}{last_four}"
+
+        return MaskedCard(
+            number=masked_number,
+            expiry=card.expiry,
+            name=card.name
+        )
