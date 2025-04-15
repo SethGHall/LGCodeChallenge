@@ -41,3 +41,14 @@ async def get_invoices(
 async def create_invoice(response: Response, invoice_request: InvoiceRequest):
     response.status_code, json_response = await invoice_service.create_invoice(invoice_request)
     return json_response
+
+
+@app.post("/invoice/pay/{invoice_id}", response_model=InvoiceResponse)
+async def pay_invoice(
+        response: Response,
+        invoice_id:UUID = Path(...),
+        card: Card = ...
+):
+    # For now, call invoice_service.pay_pending_invoice(invoice_id) as this is the requirement
+    response.status_code, json_response = await invoice_service.pay_pending_invoice(invoice_id, card)
+    return json_response
